@@ -1,0 +1,7 @@
+# This file lists the test sets we want to extract results for.
+# Place the name of each test set on a new line
+
+# Names of test sets must appear in hakaru/haskell/Tests/RoundTrip.hs
+# under the allTests array
+
+testStdChiSqRelations
