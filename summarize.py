@@ -1,33 +1,99 @@
+import json
+
+jsonList ='test_sets_to_summarize.json'
+
+hakaruRootDir = "../4ZP6/hakaru/"
+roundTripFile = "RoundTrip.hs"			# hakaruRootDir + "haskell/Tests/RoundTrip.hs"
+logFile = "hakaru-0.6.0-test.log" 		# hakaruRootDir + ".stack-work/logs/hakaru-0.6.0-test.log"
+
+json_data=open(jsonList)
+data = json.load(json_data)
+json_data.close()
+
+listOfSets = data['testSets']
+
 tests = {}
-# STEP 1: 
-#	Create lists of all test case names and the respective file paths to their hakaru programs
-# 	Pull this info from hakaru/haskell/Tests/RoundTrip.hs
-#	Only want tests from the sets listed in test_sets_to_summarize
-#	Keep test sets separate
-#	tests = {'testSetName': { 
-#					'testName': { 
-#							'files': {
-#									'fileName': '<HAKARU CODE>', 
-#									'fileName2': '<HAKARU CODE>'	
-#							}
-#							'logs':  '<LOG FILE THINGS>' OR 'PASS'
-#					} 
-#			 } 
-#			}
+in_file = open(roundTripFile, "rt")
 
-# STEP 2:
-#	For each test case:
-#		Scan hakaru/.stack-work/logs/hakaru-0.6.0-test.log to see if it comes up as a failure
-#		If it appears:
-#			Mark test case as failed
-#			Extract relevant info from the log and output to a file
-#		Else:
-#			Mark test case as passed
+for testSet in listOfSets:
+	testList = []
+	testArray = testSet + " = test ["
+	tempString = ""
+	inScope = False
+	failure = False
+	tests[testSet] = {}
 
-# STEP 3:
-#	Output test results 
-#	Create a summary table with test name and whether it passed or failed
-#	Create an appendix which has headings for every test case.
-#		For each test case we want: 
-#			the filenames and code used in the test
-#			the failure info from the logs or something saying the test passed
+	for line in in_file:
+
+		if ((inScope == True) and ("]" in line)):
+			inScope = False
+
+		if (inScope == True):
+
+			testList.append(line)
+			
+			file1 = hakaruRootDir + line.split(" ")[7].replace("\"","")
+			file2 = hakaruRootDir + line.split(" ")[8].replace("\"","").replace(",","").replace('\n', '')
+			with open(file1, 'r') as fin:
+				file1Code=fin.read()
+
+			with open(file2, 'r') as fin:
+				file2Code = fin.read()
+
+			file1Name = line.split(" ")[7].split("/")[2].replace("\"","").replace("\'","")
+			file2Name = line.split(" ")[8].split("/")[2].replace("\"","").replace("\'","").replace(",","").replace('\n', '')
+			testName = file1Name.split(".")[0]
+			
+			tests[testSet][testName] = {'files' : {
+				'file1': {'name': file1Name, 'code': file1Code},
+				'file2': {'name': file2Name, 'code': file2Code}}}
+
+			in_file2 = open(logFile, "rt")
+			for line2 in in_file2:
+
+				if ((failure == True) and ("Cases:" in line2) and ("Tried:" in line2) and  ("Errors:" in line2)):
+					failure = False
+					tests[testSet][testName]['testResult'] = "Failed"
+					tests[testSet][testName]['logs'] = tempString	
+					tempString = ""
+							
+				if ((failure == True) and ("Cases:" not in line2) and ("Tried:" not in line2) and  ("Errors:" not in line2)):
+					tempString += line2
+
+				if (("### Failure" in line2) and (testName + ":0" in line2)):
+					failure = True
+					
+			in_file2.close() 
+		if (testArray in line):
+			inScope = True		
+
+in_file.close() 
+
+# print json.dumps(tests, ensure_ascii=False)
+
+with open('summary.json', 'w') as outfile:
+    json.dump(tests, outfile)
+
+####################################################################################
+# 									
+# 								EXAMPLE OF JSON OUTPUT
+#
+# {"testStdChiSqRelations": {
+# 	"t_beta_to_chiSq": {
+# 		"files": {
+# 			"file1": {
+# 						"name": "t_beta_to_chiSq.0.hk",
+#						"code": "..."
+# 					 }, 
+# 			"file2": {
+# 						"name": "t_beta_to_chiSq.expected.hk\n",
+#						"code": ...
+# 					 }
+# 			}
+# 		"testResult": "Passed/Failed"
+# 		"logs": "if failed, display logs here"
+# 		}
+# 	}
+# }
+#####################################################################################
+
