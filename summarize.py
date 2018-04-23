@@ -34,14 +34,18 @@ for testSet in listOfSets:
 			
 			file1 = hakaruRootDir + line.split(" ")[7].replace("\"","")
 			file2 = hakaruRootDir + line.split(" ")[8].replace("\"","").replace(",","").replace('\n', '')
+
+			print(file1)
+			print(file2)
 			with open(file1, 'r') as fin:
 				file1Code=fin.read()
 
 			with open(file2, 'r') as fin:
 				file2Code = fin.read()
 
-			file1Name = line.split(" ")[7].split("/")[2].replace("\"","").replace("\'","")
-			file2Name = line.split(" ")[8].split("/")[2].replace("\"","").replace("\'","").replace(",","").replace('\n', '')
+			file1Name = "hakaru/" + line.split(" ")[7].replace("\"","").replace("\'","")
+			file2Name = "hakaru/" + line.split(" ")[8].replace("\"","").replace("\'","").replace(",","").replace('\n', '')
+			
 			testName = file1Name.split(".")[0]
 			
 			tests[testSet][testName] = {'files' : {
