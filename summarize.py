@@ -2,7 +2,7 @@ import json
 
 jsonList ='test_sets_to_summarize.json'
 
-hakaruRootDir = "../4ZP6/hakaru/"
+hakaruRootDir = "C:/Users/Nevin/Documents/dev/hakaru/4ZP6/hakaru/" 	# must be absolute path
 roundTripFile = "RoundTrip.hs"			# hakaruRootDir + "haskell/Tests/RoundTrip.hs"
 logFile = "hakaru-0.6.0-test.log" 		# hakaruRootDir + ".stack-work/logs/hakaru-0.6.0-test.log"
 
@@ -32,20 +32,25 @@ for testSet in listOfSets:
 
 			testList.append(line)
 			
-			file1 = hakaruRootDir + line.split(" ")[7].replace("\"","")
-			file2 = hakaruRootDir + line.split(" ")[8].replace("\"","").replace(",","").replace('\n', '')
+			lineArray = line.split(" ")
+			fileIndex = 0
+			for i in range(len(lineArray)) :
+				if lineArray[i] == "testConcreteFiles":
+					fileIndex = i + 1
+					break
 
-			print(file1)
-			print(file2)
+			file1 = hakaruRootDir + line.split(" ")[fileIndex].replace("\"","")
+			file2 = hakaruRootDir + line.split(" ")[fileIndex + 1].replace("\"","").replace(",","").replace('\n', '')
+
 			with open(file1, 'r') as fin:
 				file1Code=fin.read()
 
 			with open(file2, 'r') as fin:
 				file2Code = fin.read()
 
-			file1Name = "hakaru/" + line.split(" ")[7].replace("\"","").replace("\'","")
-			file2Name = "hakaru/" + line.split(" ")[8].replace("\"","").replace("\'","").replace(",","").replace('\n', '')
-			
+			file1Name = "hakaru/" + line.split(" ")[fileIndex].replace("\"","").replace("\'","")
+			file2Name = "hakaru/" + line.split(" ")[fileIndex + 1].replace("\"","").replace("\'","").replace(",","").replace('\n', '')
+
 			testName = file1Name.split(".")[0]
 			
 			tests[testSet][testName] = {'files' : {
