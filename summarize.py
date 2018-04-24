@@ -69,7 +69,7 @@ for testSet in listOfSets:
 				if ((failure == True) and ("Cases:" not in line2) and ("Tried:" not in line2) and  ("Errors:" not in line2)):
 					tempString += line2
 
-				if (("### Failure" in line2) and (testName + ":0" in line2)):
+				if (("### Failure" in line2) and (testName in line2)):
 					failure = True
 					
 			in_file2.close() 
