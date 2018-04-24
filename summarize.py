@@ -21,7 +21,9 @@ for testSet in listOfSets:
 	tempString = ""
 	inScope = False
 	failure = False
+	file0flag = False
 	tests[testSet] = {}
+	in_file = open(roundTripFile, "rt")
 
 	for line in in_file:
 
@@ -51,32 +53,50 @@ for testSet in listOfSets:
 			file1Name = "hakaru/" + line.split(" ")[fileIndex].replace("\"","").replace("\'","")
 			file2Name = "hakaru/" + line.split(" ")[fileIndex + 1].replace("\"","").replace("\'","").replace(",","").replace('\n', '')
 
-			testName = file1Name.split(".")[0]
+			testName = file1Name.split("/")[3].split(".")[0]
 			
 			tests[testSet][testName] = {'files' : {
 				'file1': {'name': file1Name, 'code': file1Code},
 				'file2': {'name': file2Name, 'code': file2Code}}}
+
+			tests[testSet][testName]['testResult'] = "Passed"
+			tests[testSet][testName]['logs'] = {"0" : "", "1": ""}
+
+			# tests[testSet][testName]['logs']['0'] = ""
+			# tests[testSet][testName]['logs']['1'] = ""
 
 			in_file2 = open(logFile, "rt")
 			for line2 in in_file2:
 
 				if ((failure == True) and ("Cases:" in line2) and ("Tried:" in line2) and  ("Errors:" in line2)):
 					failure = False
-					tests[testSet][testName]['testResult'] = "Failed"
-					tests[testSet][testName]['logs'] = tempString	
+					if (file0flag == True):
+						# tests[testSet][testName]['files']['file1']['testResult'] = "Failed"
+						# tests[testSet][testName]['files']['file1']['logs'] = tempString
+
+						tests[testSet][testName]['testResult'] = "Failed"
+						tests[testSet][testName]['logs']['0'] = tempString
+
+						file0flag = False
+					else:
+
+						tests[testSet][testName]['testResult'] = "Failed"
+						tests[testSet][testName]['logs']['1'] = tempString						
 					tempString = ""
 							
 				if ((failure == True) and ("Cases:" not in line2) and ("Tried:" not in line2) and  ("Errors:" not in line2)):
 					tempString += line2
 
 				if (("### Failure" in line2) and (testName in line2)):
+					if (testName + ":0" in line2):
+						file0flag = True
 					failure = True
 					
 			in_file2.close() 
 		if (testArray in line):
 			inScope = True		
 
-in_file.close() 
+	in_file.close() 
 
 # print json.dumps(tests, ensure_ascii=False)
 
